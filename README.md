@@ -2,6 +2,10 @@
 
 **Run any command on a GitHub Actions runner, straight from your terminal, using your working tree exactly as it is right now.**
 
+![gh-offload building itself on a GitHub ARM runner from an x86_64 machine, then file showing the returned binary is ARM aarch64](docs/demo.gif)
+
+<sub>A real run: gh-offload builds itself on an ARM runner and the binary comes back. Pauses longer than 1.5s are shortened. Recorded on a runner by <a href=".github/workflows/demo.yml">demo.yml</a>.</sub>
+
 ```sh
 gh offload -- cargo build --release
 ```
