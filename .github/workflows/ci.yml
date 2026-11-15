@@ -1,0 +1,63 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        if: runner.os == 'Linux'
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            gofmt -d .
+            echo "::error::not gofmt-ed: $unformatted"
+            exit 1
+          fi
+      - run: go vet ./...
+      - run: go test ./...
+      - name: shellcheck
+        if: runner.os == 'Linux'
+        run: shellcheck scripts/*.sh
+
+  e2e:
+    name: e2e (${{ matrix.target }})
+    needs: test
+    # Forks get a read-only token, so they can't push the snapshot branch.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: write # push and delete the snapshot branch
+      actions: write # start the offload run and download its artifact
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(github.event_name == 'pull_request' && '["linux"]' || '["linux","windows","macos"]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: go build -o gh-offload .
+      - run: scripts/e2e.sh ${{ matrix.target }}
+        env:
+          GH_TOKEN: ${{ github.token }}
