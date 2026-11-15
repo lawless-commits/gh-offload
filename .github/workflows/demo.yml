@@ -45,14 +45,15 @@ jobs:
           TERM: xterm-256color
         run: |
           asciinema rec --headless --window-size 104x20 --return --overwrite \
-            --command scripts/demo.sh demo.cast
+            --command scripts/demo.sh "$RUNNER_TEMP/demo.cast"  # outside the checkout, so the snapshot stays clean
       - name: Render
         run: |
+          cd "$RUNNER_TEMP"
           agg --idle-time-limit 1.5 --font-size 16 --last-frame-duration 4 demo.cast demo.gif
           ls -l demo.cast demo.gif
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: demo
           path: |
-            demo.cast
-            demo.gif
+            ${{ runner.temp }}/demo.cast
+            ${{ runner.temp }}/demo.gif
