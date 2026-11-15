@@ -9,20 +9,25 @@ gh offload -- cargo build --release
 No commit, no push, no YAML to write per project. Uncommitted and untracked files go along. You get the output, the command's exit code, and any files you ask for back in your working tree.
 
 ```text
-$ gh offload --os linux-arm --get target/release/homelab-hub -- cargo build --release
-› snapshot: HEAD (02912cc) + 2 changed, 1 new: hub/src/main.rs, hub/src/dns.rs, hub/src/tv.rs
-› running on ubuntu-24.04-arm: https://github.com/you/app/actions/runs/123456789
+$ gh offload --os linux-arm --get target/release/homelab-hub -- cargo build --release --locked -p homelab-hub
+› snapshot: HEAD (006ad87) + 1 changed: hub/src/main.rs
+› running on ubuntu-24.04-arm: https://github.com/…/actions/runs/43680839108
 › waiting for a ubuntu-24.04-arm runner
 › Check out snapshot
 › Restore build cache
 › Run command
-   Compiling homelab-hub v0.16.0 (/home/runner/work/app/app/hub)
-    Finished `release` profile [optimized] target(s) in 3m 41s
 › Collect files
 › Upload result
+   Compiling homelab-hub v0.16.0 (/home/runner/work/…/hub)
+    Finished `release` profile [optimized] target(s) in 56.60s
 › brought back 1 file(s): target/release/homelab-hub
-› exit code 0 after 4m12s
+› exit code 0 after 1m30s
+
+$ file target/release/homelab-hub
+target/release/homelab-hub: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, …
 ```
+
+That's a real run from a private repo, with an uncommitted edit. The first build took 2m36s end to end. The second reused the cache and took 1m30s, and the laptop that started it has 8 GB of RAM and can't finish this build itself.
 
 ## Why
 
