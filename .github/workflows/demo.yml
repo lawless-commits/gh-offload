@@ -1,0 +1,58 @@
+name: demo
+
+# Records scripts/demo.sh, a real offload to an ARM runner, and renders it as
+# the README GIF. Run it by hand; download the "demo" artifact and commit
+# demo.gif as docs/demo.gif.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  record:
+    permissions:
+      contents: write # push and delete the snapshot branch
+      actions: write # start the offload run and download its artifact
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ASCIINEMA_VERSION: v3.2.1
+      AGG_VERSION: v1.9.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Install gh-offload from this checkout
+        run: |
+          ext="$RUNNER_TEMP/ext/gh-offload"
+          mkdir -p "$ext"
+          go build -o "$ext/gh-offload" .
+          cd "$ext" && gh extension install .
+          gh offload version
+      - name: Install asciinema and agg
+        run: |
+          bin="$RUNNER_TEMP/bin"
+          mkdir -p "$bin"
+          gh release download "$ASCIINEMA_VERSION" -R asciinema/asciinema -p asciinema-x86_64-unknown-linux-musl -O "$bin/asciinema"
+          gh release download "$AGG_VERSION" -R asciinema/agg -p agg-x86_64-unknown-linux-musl -O "$bin/agg"
+          chmod +x "$bin"/*
+          sha256sum "$bin"/*
+          echo "$bin" >> "$GITHUB_PATH"
+      - name: Record
+        env:
+          TERM: xterm-256color
+        run: |
+          asciinema rec --headless --window-size 104x20 --return --overwrite \
+            --command scripts/demo.sh demo.cast
+      - name: Render
+        run: |
+          agg --idle-time-limit 1.5 --font-size 16 --last-frame-duration 4 demo.cast demo.gif
+          ls -l demo.cast demo.gif
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: demo
+          path: |
+            demo.cast
+            demo.gif
