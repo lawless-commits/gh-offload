@@ -123,6 +123,8 @@ go build -o gh-offload . && gh extension install .
 
 CI runs the unit tests on Linux, macOS and Windows. It then runs [`scripts/e2e.sh`](scripts/e2e.sh), which offloads a real command from this repository to Linux, Windows and macOS runners and checks the output, the exit code, the returned files and that the branch was cleaned up.
 
+gh-offload was built with [Claude Code](https://claude.com/claude-code), which wrote most of the code. Every change was tested in the CI described above, on GitHub's runners.
+
 ## License
 
 [MIT](LICENSE)
