@@ -1,0 +1,46 @@
+name: install
+
+# Checks the path a new user takes with the latest release: install it with
+# gh, check the setup, and offload a command, on each desktop OS.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    name: install (${{ matrix.os }})
+    permissions:
+      contents: write # push and delete the snapshot branch
+      actions: write # start the offload run and download its artifact
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: gh extension install
+        run: |
+          gh extension install "$GITHUB_REPOSITORY"
+          gh extension list
+          gh offload version
+      - name: gh offload help
+        run: gh offload --help
+      - name: gh offload init (already set up)
+        run: |
+          gh offload init 2>&1 | tee init.log
+          grep -q "up to date\|ready to run" init.log
+          gh offload init --print | grep -q "workflow_dispatch"
+          rm init.log
+      - name: gh offload, first run
+        run: |
+          out="$(gh offload --yes -- 'echo "hello from $RUNNER_OS"')"
+          echo "$out"
+          grep -q "hello from Linux" <<< "$out"

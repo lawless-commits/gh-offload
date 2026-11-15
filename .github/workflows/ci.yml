@@ -61,3 +61,30 @@ jobs:
       - run: scripts/e2e.sh ${{ matrix.target }}
         env:
           GH_TOKEN: ${{ github.token }}
+
+  # The e2e jobs above run the CLI on Linux. These run it on a Mac and a
+  # Windows machine, the way people will use it from their laptops.
+  client:
+    name: client (${{ matrix.os }})
+    needs: test
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: write # push and delete the snapshot branch
+      actions: write # start the offload run and download its artifact
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: go build -o "gh-offload$(go env GOEXE)" .
+      - run: GH_OFFLOAD_BIN="./gh-offload$(go env GOEXE)" scripts/e2e.sh linux
+        env:
+          GH_TOKEN: ${{ github.token }}
