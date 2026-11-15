@@ -118,6 +118,26 @@ Standard GitHub-hosted runners are free for public repositories. Private reposit
 - **Pushing a branch and watching CI** works, but means a commit per try, a workflow that runs your whole pipeline, and a zip to download for any file you want.
 - **Hosted remote builders** (Depot and others) are paid services with their own runners. gh-offload uses the runners and minutes your GitHub account already has.
 
+## FAQ
+
+**Is this allowed by GitHub's terms?**
+GitHub's [terms for Actions](https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#actions) allow using runners to build and test the software project in the repository, and rule out activity unrelated to it, such as crypto mining or running a serverless app. gh-offload is meant for the first kind: building and testing the repository you run it from. Using it for anything else is up to you, and so is the risk.
+
+**How much time does each run add?**
+About 20 seconds for a trivial command, most of it waiting for a runner to start and for the result artifact to come back. It's built for commands that take minutes, not for running `ls`.
+
+**What's installed on the runner?**
+Whatever GitHub's [runner images](https://github.com/actions/runner-images) include: Git, Docker on Linux, and common toolchains such as Go, Node, Python, Java and Rust. Install anything else as part of your command, for example `gh offload -- 'sudo apt-get install -y libfoo-dev && make'`.
+
+**Why does it need a workflow in my repository?**
+GitHub only lets you start a workflow that is already on the default branch, so `gh offload init` adds one through a pull request. It's a single file you can read before you merge it. After that, every project uses the same workflow, whatever the command.
+
+**Can coding agents use it?**
+Yes. `--json` prints one JSON object with the output, the exit code and the files that came back, and the exit code always matches the command's. An agent on a small machine can run the heavy tests remotely.
+
+**Does it work with GitHub Enterprise Server or self-hosted runners?**
+`--runner` takes any `runs-on` label, including self-hosted and larger runners, but neither those nor GitHub Enterprise Server have been tested yet. Reports are welcome.
+
 ## Development
 
 ```sh

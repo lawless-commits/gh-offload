@@ -1,0 +1,36 @@
+name: Bug report
+description: Something went wrong running gh offload
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command you ran, what you expected, and what you got instead.
+      placeholder: |
+        gh offload --os macos -- make test
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: gh offload's output, including the › lines. Remove anything private first.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: gh offload version
+      placeholder: gh offload version
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Your OS, and the --os or --runner you used
+      placeholder: macOS 15, --os linux-arm
+  - type: input
+    id: run
+    attributes:
+      label: Link to the Actions run, if the repository is public
