@@ -20,8 +20,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/lawless-commits/gh-offload/internal/gitrepo"
 	"github.com/lawless-commits/gh-offload/internal/github"
+	"github.com/lawless-commits/gh-offload/internal/gitrepo"
 	"github.com/lawless-commits/gh-offload/internal/secret"
 	"github.com/lawless-commits/gh-offload/internal/shell"
 	"github.com/lawless-commits/gh-offload/internal/unpack"
